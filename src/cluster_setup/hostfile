@@ -1,0 +1,4 @@
+# Format: hostname slots=n
+# Where hostname is the IP
+10.0.0.128 slots=3  # Note that slots is the amount of processess that can run in a node
+10.0.0.132 slots=3
