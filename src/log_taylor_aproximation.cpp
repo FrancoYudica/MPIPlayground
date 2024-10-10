@@ -1,3 +1,24 @@
+/*
+Complete guide for setting up and running.
+
+1. Compile the program
+    mpic++ src/log_taylor_aproximation.cpp -o build/taylor_cluster
+
+2. Share public keys to all the nodes of the cluster
+    ./src/cluster_setup/share_public_key.sh src/cluster_setup/ips_example.txt
+
+3. Copy the program to all the cluster nodes in the same location
+    ./src/cluster_setup/copy_files.sh src/cluster_setup/ips_example.txt build/taylor_cluster /home/franco/Documents
+
+4. Run the program in the cluster
+    mpirun -np 2 --hostfile src/cluster_setup/hostfile  /home/franco/Documents/taylor_cluster 1500000 10000000 > output.txt
+
+*/
+
+// This version uses standard arguments instead of console arguments, this way the
+// arguments can be specified when executing the cluster
+// mpirun -np 4 --hostfile hostfile ./your_program arg1, arg2, ..., argn > output.txt
+
 #include <math.h>
 #include <mpi/mpi.h>
 #include <unistd.h>
@@ -29,41 +50,34 @@ long double log_terms(
     return 2.0f * sum;
 }
 
-int main()
+int main(int argc, char** argv)
 {
+
+    // User input data
+    long double x = 1.0;
+    uint64_t term_count = 1;
+
     // Initializes MPI
     // ----------------------------------------------------------------------
-    int rank, size;
-    if (MPI_Init(NULL, NULL) != MPI_SUCCESS) {
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
         std::cout << "Error while initializing MPI" << std::endl;
         return 1;
     }
 
+    int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    // Inputs data in root
-    // ----------------------------------------------------------------------
-
-    // Root rank for gathering user input, broadcasting and gathering results
     int root_rank = 0;
 
-    // User input data
-    long double x = 0.0f;
-    uint64_t term_count = 1;
-
     if (rank == root_rank) {
-        std::string input_string;
+        if (argc != 3) {
+            std::cout << "The program expects 2 arguments. First X and then the amount of terms used for approximation\n";
+            return 1;
+        }
 
-        std::cout << "Enter value X: ";
-        std::cin >> input_string;
-        x = std::stold(input_string);
-
-        std::cout << "Amount of terms: ";
-        std::cin >> input_string;
-        term_count = std::stoul(input_string);
-
-        std::cout << "Broadcasting \"X=" << x << "\" with \"" << term_count << "\" terms\n";
+        x = atof(argv[1]);
+        term_count = atol(argv[2]);
     }
 
     // Broadcasts parameters to all processes
@@ -79,6 +93,8 @@ int main()
         x,
         rank * terms_x_thread,
         rank * terms_x_thread + terms_x_thread - 1);
+
+    std::cout << "Result in node of rank " << rank << ": " << std::setprecision(15) << send_result << std::endl;
 
     // Allocate space in root to gather results from all processes
     long double recv_buffer[size];
@@ -101,13 +117,6 @@ int main()
     }
 
     if (rank == root_rank) {
-
-        // Root process prints the gathered results
-        std::cout << "Results: ";
-        for (int i = 0; i < size; i++) {
-            std::cout << std::setprecision(15) << recv_buffer[i] << ", ";
-        }
-        std::cout << std::endl;
 
         // Computes the result by adding all the terms
         long double result = 0.0;

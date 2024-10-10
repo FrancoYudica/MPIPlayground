@@ -1,12 +1,7 @@
-Result in node of rank 0: 14.1934361180797
-Result in node of rank 10: 1.08041202737432e-12
-Result in node of rank 3: 7.91611849852413e-05
-Result in node of rank 5: 3.85834419649883e-07
-Result in node of rank 9: 1.35134193060774e-11
-Result in node of rank 4: 5.37315134964497e-06
-Result in node of rank 7: 2.19577812699959e-09
-Result in node of rank 2: 0.00128730860387007
-Result in node of rank 8: 1.71000148964772e-10
-Result in node of rank 6: 2.87362080639418e-08
-Result in node of rank 1: 0.0261672881004064
-Result: 14.2209756660723
+Node 1 is computing column range: (4, 8)
+Node 2 is computing column range: (8, 12)
+Node 3 is computing column range: (12, 16)
+Node 4 is computing column range: (16, 20)
+Node 5 is computing column range: (20, 20)
+Node 0 is computing column range: (0, 4)
+Result: 159.999893188477
